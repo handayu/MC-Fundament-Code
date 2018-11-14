@@ -1,0 +1,94 @@
+Inputs: 
+
+   OpenMainshares(1);  
+   
+var:
+	ATRLength( 14 );
+	
+variables:
+	VolatityPointEveryDay1( 0 ),
+       VolatityPointEveryDay2( 0 ),
+       VolatityPointEveryDay3( 0 ),
+       VolatityPointEveryDay4( 0 ),
+       VolatityPointEveryDay5( 0 ),
+       VolatityPointEveryDay6( 0 ),
+
+	MainProductOpenShresLossProfitEveryDay(0),
+	
+       Data2Shares(0),
+       Data3Shares(0),
+       Data4Shares(0),
+                   Data5Shares(0),
+       Data6Shares(0);
+
+VolatityPointEveryDay1= AvgTrueRange( ATRLength ) of data1;
+VolatityPointEveryDay2= AvgTrueRange( ATRLength ) of data2;
+VolatityPointEveryDay3= AvgTrueRange( ATRLength ) of data3;
+VolatityPointEveryDay4= AvgTrueRange( ATRLength ) of data4;
+VolatityPointEveryDay5= AvgTrueRange( ATRLength ) of data5;
+VolatityPointEveryDay6= AvgTrueRange( ATRLength ) of data6;
+
+MainProductOpenShresLossProfitEveryDay= VolatityPointEveryDay1*Bigpointvalue*OpenMainshares;
+
+Data2Shares= MainProductOpenShresLossProfitEveryDay/((bigpointvalue of data2) * VolatityPointEveryDay2);
+Data3Shares= MainProductOpenShresLossProfitEveryDay/((bigpointvalue of data3) * VolatityPointEveryDay3);
+Data4Shares= MainProductOpenShresLossProfitEveryDay/((bigpointvalue of data4) * VolatityPointEveryDay4);
+Data5Shares= MainProductOpenShresLossProfitEveryDay/((bigpointvalue of data5) * VolatityPointEveryDay5);
+Data6Shares= MainProductOpenShresLossProfitEveryDay/((bigpointvalue of data6) * VolatityPointEveryDay6);
+
+var:
+   stringTips(""),
+   //
+   //
+   string1(""),
+   string2(""),
+   string3(""),
+   string4(""),
+   string5(""),
+   string6(""),  
+   //
+   //
+   stringAllMagin("");
+   
+
+var:
+
+    magin1(0),
+    magin2(0),
+    magin3(0),
+    magin4(0),
+    magin5(0),
+    magin6(0);
+
+magin1 = OpenMainshares* (bigpointvalue of data1)* (Close of data1)*0.1;
+magin2= Data2Shares* (bigpointvalue of data2)* (Close of data2)*0.1;
+magin3= Data3Shares* (bigpointvalue of data3)* (Close of data3)*0.1;
+magin4= Data4Shares* (bigpointvalue of data4)* (Close of data4)*0.1;
+magin5= Data5Shares* (bigpointvalue of data5)* (Close of data5)*0.1;
+magin6= Data6Shares* (bigpointvalue of data6)* (Close of data6)*0.1;
+
+stringTips = "One Mini PortFoilo Products Matching Concept,Defult 10% Magin";
+
+string1 = symbol + " :" + numtostr(OpenMainshares,2) + " Magin Need: " + NumToStr(magin1 ,2);
+string2 = symbol of data2 + " :" + numtostr(Data2Shares,2)+ " Magin Need: " + NumToStr(magin2 ,2);
+string3 = symbol of data3 + " :" + numtostr(Data3Shares,2)+ " Magin Need: " + NumToStr(magin3 ,2);
+string4 = symbol of data4 + " :" + numtostr(Data4Shares,2)+ " Magin Need: " + NumToStr(magin4 ,2);
+string5= symbol of data5 + " :" + numtostr(Data5Shares,2)+ " Magin Need: " + NumToStr(magin5 ,2);
+string6= symbol of data6 + " :" + numtostr(Data6Shares,2)+ " Magin Need: " + NumToStr(magin6 ,2);
+
+stringAllMagin = "All One Min-Folio Magin Need: " + NumToStr(magin1 + magin2 + magin3 + magin4 + magin5 + magin6,2);
+
+
+if LastBarOnChart then begin
+
+	if Text_Exist(Value60) then  text_delete(Value60);
+Value60 = Text_New(0, 0, 0, stringTips +"\n" + "\n" +string1 +"\n" + string2 +"\n"+string3+"\n"+string4+"\n"+string5+"\n"+string6 + "\n" + "\n" +stringAllMagin );
+
+	Text_Float(Value60, 5, 75);
+	text_setcolor(Value60,Red);
+	text_setsize(Value60,16);
+	Text_SetAttribute(Value60,1,True); 
+	Text_SetFontName(Value60,"Verdana"); 
+end;
+
+//int(niShared," ",VolatityPointEveryDay2," ",MainProductOpenShresLossProfitEveryDay,"  ",bigpointvalue of data2,"  ",VolatityPointEveryDay3);
