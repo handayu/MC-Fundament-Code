@@ -1,0 +1,41 @@
+input:
+
+   InitStart(0);
+
+var:
+  MP(0),
+  LastTradeProfitPoint(0),
+  TradeNum(0),
+  EntryDateInit(0),
+  EntryTimeInit(0),
+  EntryPricInit(0);
+     
+MP = marketposition;  
+
+   
+if ((MP[1] <> 0 ) and MP = 0) OR (MP[1] =1 and MP = -1) OR (MP[1] =-1 and MP = 1) then begin   
+    
+   TradeNum = TradeNum + 1;
+   
+   if(TradeNum >= 3) then begin 
+    
+	   if(MP[1] = 1) then LastTradeProfitPoint =exitprice(1) - entryprice(1);
+	   if(MP[1] = -1) then LastTradeProfitPoint =entryprice(1) - exitprice(1);
+	   
+	   if(EntryDateInit = 0 and  EntryTimeInit = 0 and  EntryPricInit = 0) then begin
+		   Value21 = tl_new(entryDate(1) ,entryTime(1) ,InitStart,exitDate(1),exitTime(1),InitStart + LastTradeProfitPoint);  	   	   	   
+		   EntryDateInit = exitDate(1);
+		   EntryTimeInit= exitTime(1);
+		   EntryPricInit= InitStart+ LastTradeProfitPoint;   
+	   end;
+	   if(EntryDateInit <>  0 and  EntryTimeInit <> 0 and  EntryPricInit <> 0) then begin 
+		   Value22 = tl_new(EntryDateInit,EntryTimeInit,EntryPricInit,exitDate(1),exitTime(1),EntryPricInit + LastTradeProfitPoint);  
+		   EntryDateInit = exitDate(1);
+		   EntryTimeInit= exitTime(1);
+		   EntryPricInit= EntryPricInit + LastTradeProfitPoint;
+	   end;	     
+   end;
+end; 
+
+
+   

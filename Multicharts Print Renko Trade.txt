@@ -1,0 +1,30 @@
+//1.当multichart交易代码中存在buy next bar 时候，存在真实进出场和图表进出场虚假不一致的问题，这个
+//主要是砖图交易的逻辑造成的,需要找出来去掉。
+
+//2.当MC交易代码中存在buy next bar at ....stop时候，属于是挂单交易，因为砖图来回荡的缘由，实际交易中成交
+但是刷图之后，信号消失，所以存在严重的信号回测失真，所以不能使用。
+
+//3.当MC代码中存在buy this bar at close的时候，属于是当块完成即时交易，所以暂时不存在这个问题，[但是需要]
+考虑到另外的信号问题。
+
+var:
+  MP(0),
+  LastTradeProfitPoint(0);
+     
+MP = marketposition;  
+   
+if (MP[1] = 0 OR MP[1] = -1) and MP = 1  then begin
+   value1 = 1;
+   LastTradeProfitPoint = entryprice(1) - exitprice(1);
+   if close - open >0 then print(symbolname,"_","BarNum:",currentbar+MaxBarsBack,"_", "1","_",value1,"_",LastTradeProfitPoint,"_",bigpointvalue,"_",absvalue(Open-Close));    
+   if close - open <0 then print(symbolname,"_","BarNum:",currentbar+MaxBarsBack,"_", "-1","_",value1,"_",LastTradeProfitPoint,"_",bigpointvalue,"_",absvalue(Open-Close));    
+end;
+    
+if (MP[1] = 0 OR MP[1] = 1) and MP = -1 then begin   
+   value1 = -1; 
+   LastTradeProfitPoint =exitprice(1) - entryprice(1);
+   if close - open <0 then  print(symbolname,"_","BarNum:",currentbar+MaxBarsBack,"_", "-1","_",value1,"_",LastTradeProfitPoint,"_",bigpointvalue,"_",absvalue(Open-Close));     
+   if close - open >0 then  print(symbolname,"_","BarNum:",currentbar+MaxBarsBack,"_", "1","_",value1,"_",LastTradeProfitPoint,"_",bigpointvalue,"_",absvalue(Open-Close));     
+end; 
+
+   

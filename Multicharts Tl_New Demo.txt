@@ -1,0 +1,240 @@
+[IntrabarOrderGeneration = false]
+inputs:  
+	FastLength( 1 ), 
+	SlowLength( 1380 ),
+	DayHighPositionSwitchLine(0),
+	DayLowPositionSwitchLine(0);
+	
+   tl_delete(Value30);
+   Value30 = tl_new(Date-3,100,DayHighPositionSwitchLine,Date + 3,2359,DayHighPositionSwitchLine);  
+   tl_setcolor(Value30,Red);
+   tl_setsize(Value30,5);
+	
+   tl_delete(Value50);
+   Value50= tl_new(Date-3,100,DayLowPositionSwitchLine,Date + 3,2359,DayLowPositionSwitchLine);  
+   tl_setcolor(Value50,Blue);
+   tl_setsize(Value50,5);
+	
+variables:
+	MALong( 0 ),
+	MAShort( 0 );
+MAShort= AverageFC( Close, FastLength ) ;
+MALong = AverageFC( Close, SlowLength ) ;
+
+var:
+  valueBuy(0),
+  valueSell(0);         
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var:
+  sDate(date),
+  sTime(time),
+  sPrice(Close);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+inputs: 
+	PriceH( High ),  
+	PriceL( Low ), 
+	PriceC( Close ), 
+	StochLength( 14 ), 
+	SmoothingLength1( 3 ),                                        
+	SmoothingLength2( 3 ),                                
+	SmoothingType( 1 ),                                         
+	OverSold( 30 ), 
+	OverBought( 70) ; 
+
+variables:
+	var10( 0 ), 
+	var11( 0 ), 
+	var12( 0 ), 
+	var13( 0 ) ;
+	
+var:
+       barFlag(0);	
+
+Value1 = Stochastic( PriceH, PriceL, PriceC, StochLength, SmoothingLength1, 
+ SmoothingLength2, SmoothingType, var10, var11, var12, var13 ) ;
+    
+var:
+       bool ConditionHighAvgBuy(false),
+       bool ConditionLowAvgSel(false);
+
+ConditionHighAvgBuy = var12 crosses over var13 and var12 <= OverSold and MAShort >= MALong ;
+ConditionLowAvgSel = var12 crosses under var13 and var12 >= OverBought and MAShort <= MALong ;
+
+var:
+       bool ConditionFenDuanCoverPoint1(false),
+       bool ConditionFenDuanCoverPoint2(false);
+
+ConditionFenDuanCoverPoint1= var12 crosses under var13 and var12 >= OverBought and MAShort >= MALong ;
+ConditionFenDuanCoverPoint2= var12 crosses over var13 and var12 <= OverSold and MAShort <= MALong ;
+
+var:
+      BuyNearLowest(0),
+      SelNearHigest(0);
+
+var:
+   OutHigh(0),
+   OutLow(0),
+   SingleCanGoHighLowerIn(0);
+//////////////
+if ConditionHighAvgBuy then begin 
+   Value10=Arw_New(Date,Time,High,False); 
+   Alert(Text("Up"));
+   buy ("HBuy-1-2") next bar at market;      
+   SingleCanGoHighLowerIn = 1;	
+   BuyNearLowest = Lowest(Low,3);  	   
+end;
+
+if ConditionLowAvgSel then begin 
+   Value10=Arw_New(Date,Time,High,True);
+   sellshort ("LSell-1-2") next bar at market;   
+   SingleCanGoHighLowerIn = 1;   
+   Alert(Text("Down")) ;	 
+   SelNearHigest = Highest(high,3);  
+end;
+
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+if marketposition = 1 and entryname = "HBuy-1-2" then begin 
+   sell("BDownEntryPrice") all shares next bar at BuyNearLowest stop;  
+end;
+
+if marketposition = -1 and entryname = "LSell-1-2" then begin 
+   buytocover("SHighEntryPrice") all shares next bar at SelNearHigest stop;  
+end;
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+if ConditionFenDuanCoverPoint1  then begin 
+   sell ("HS") next bar at market; 
+   Alert(Text("HS"));
+   OutHigh = Highest(high,2);     	  	   
+end;
+
+if ConditionFenDuanCoverPoint2 then begin 
+   buytocover ("LS") next bar at market; 
+   Alert(Text("LS"));   
+   OutLow = Lowest(Low,2);     	  	     
+end;
+
+if Close >= OutHigh and OutHigh <> 0 and SingleCanGoHighLowerIn = 1 then begin 
+   buy ("HigherB-1-2") next bar at market;     
+      Alert(Text("HigherB-1-2"));    	  	   
+end;
+
+if Close <= OutLow and OutLow <> 0 and SingleCanGoHighLowerIn = 1 then begin 
+   sellshort ("LowerS-1-2") next bar at market; 
+      Alert(Text("LowerS-1-2"));        	  	   
+end;
+
+if MAShort Cross above MALong then begin 
+   if marketposition = -1 then begin 
+      buytocover("MACRossBCover") all shares next bar at market;
+            Alert(Text("MACRossBCover"));        	  	   
+
+   end;
+end;
+
+if MAShort Cross Under MALong then begin 
+   if marketposition = 1 then begin 
+      sell("MACRossSCover") all shares next bar at market;
+            Alert(Text("MACRossSCover"));        	  	   
+
+   end;
+end;
+	         
+if MAShort Cross above MALong or MAShort Cross Under MALong  then begin
+   OutHigh = 0;
+   OutLow = 0;
+   SingleCanGoHighLowerIn = 0;
+end;
+
+//
+//if marketposition <>0 and barssinceentry >=1 and openpositionprofit <= 0 then begin 
+//   if marketposition = 1 then begin 
+//      sell ("3K-No-ProfitS") all shares next bar at market;
+//  end;
+   
+//   if marketposition = -1 then begin 
+//      buytocover ("3K-No-ProfitB") all shares next bar at market;
+//   end;
+//end;
+	
+//
+if ConditionFenDuanCoverPoint1 then begin 
+   tl_delete(Value20);
+   Value11=Arw_New(Date,Time,High,True);
+   arw_setcolor(Value11,White);
+   //Value8=Text_New(Date,Time,High,"Ot:" + NumToStr(Highest(high,4),2));
+   Value20 = tl_new(Date,100,Highest(high,4),Date,2359,Highest(high,4));  
+end;
+
+if ConditionFenDuanCoverPoint2 then begin 
+   tl_delete(Value21);
+   Value12=Arw_New(Date,Time,High,false);
+   arw_setcolor(Value12,White);
+   //Value9=Text_New(Date,Time,High,"Ot:" + NumToStr(Lowest(low,4),2));
+   Value21=tl_new(Date,100,Lowest(low,4),date,2359,Lowest(low,4));
+end;
+
+///////////////
+Variable:
+         IntraBarPersist MP(100),
+         IntraBarPersist preId(0),
+         IntraBarPersist CommID(0);
+         
+         var:
+         ClolorLoopNum(0);
+         
+MP = marketposition;
+
+if MP <>0 and LastBarOnChart then begin 
+
+    For ClolorLoopNum =0 To 7 Begin
+    
+         if Random(10) > 1000 then begin 
+           Text_Delete(preId); 
+           CommID = CommID + 1;
+           preId= text_new_bn(currentbar + 17 ,High,"1-2K,Decision Left");
+           text_setcolor(preId,red);
+           text_setfontname(preID,"Verdana");  
+           
+           print("symbol:",symbol,"date:",date,"time:",time,"MP:",MP,"preId:",preId,"CommID:",CommID,"2468");
+
+         end;
+    
+         if Random(10) < 0 then begin 
+           Text_Delete(preId); 
+           CommID = CommID + 1;
+           preId= text_new_bn(currentbar + 17 ,High,"1-2K,Decision Left");
+           text_setcolor(preId,blue);
+           text_setfontname(preID,"Verdana");  
+           
+           print("symbol:",symbol,"date:",date,"time:",time,"MP:",MP,"preId:",preId,"CommID:",CommID,"1357");
+
+         end;
+     End;
+
+    if ClolorLoopNum = 7 then ClolorLoopNum = 0;
+end;
+
+if marketposition = 0 then begin 
+   CommID = 0;
+   preId = 0;
+   Text_Delete(preId);
+end;
+  
+if LastBarOnChart then begin
+
+if Text_Exist(Value60) then  text_delete(Value60);
+
+Value60 = Text_New(0, 0, 0, symbol);  
+Text_Float(Value60, 5, 75);
+text_setcolor(Value60,Red);
+text_setsize(Value60,16);
+Text_SetAttribute(Value60,1,True); 
+Text_SetFontName(Value60,"Verdana"); 
+end;
+
+//print("symbol:",symbol,"date:",date,"time:",time,"MP:",MP,"preId:",preId,"CommID:",CommID,"ALL");
+
