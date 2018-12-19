@@ -1,0 +1,158 @@
+input:N1(1000),N2(200),N3(20);
+var:ma1(0),bd(0),bdma(0),up1(0),up2(0),up3(0),up4(0),dw1(0),dw2(0),dw3(0),dw4(0);
+var:dk0(0),dk1(0),dk2(0),dk3(0),kk0(0),kk1(0),kk2(0),kk3(0);
+
+ma1=Average(close,n1);
+
+bd=High-Low;
+bdma=Average(bd,n2);
+
+up1=ma1+N3*bdma/4;
+up2=ma1+N3*bdma/2;
+up3=ma1+N3*bdma*3/4;
+up4=ma1+N3*bdma;
+
+dw1=ma1-N3*bdma/4;
+dw2=ma1-N3*bdma/2;
+dw3=ma1-N3*bdma*3/4;
+dw4=ma1-N3*bdma;
+
+Plot9( ma1 ) ;
+
+Plot1( up1) ;
+Plot2( up2) ;
+Plot3( up3) ;
+Plot4( up4) ;
+Plot5( dw1) ;
+Plot6( dw2) ;
+Plot7( dw3) ;
+Plot8( dw4) ;
+
+
+
+
+
+
+
+
+////////////////////////////////////
+
+
+input:
+
+	N1(1000),
+
+	N2(200),
+
+	N3(20);
+
+var:
+
+	ma1(0),
+
+	bd(0),
+
+	bdma(0),
+
+	up1(0),
+
+	up2(0),
+
+	up3(0),
+
+	up4(0),
+
+	dw1(0),
+
+	dw2(0),
+
+	dw3(0),
+
+	dw4(0);
+
+
+	ma1=Average(close,n1);
+
+	bd=High-Low;
+	bdma=Average(bd,n2);
+
+	up1=ma1+N3*bdma/4;
+	up2=ma1+N3*bdma/2;
+	up3=ma1+N3*bdma*3/4;
+	up4=ma1+N3*bdma;
+
+	dw1=ma1-N3*bdma/4;
+	dw2=ma1-N3*bdma/2;
+	dw3=ma1-N3*bdma*3/4;
+	dw4=ma1-N3*bdma;
+
+var:
+
+  Intrabarpersist Int CurrStatus (0);
+  
+CurrStatus = Marketposition*CurrentShares;
+
+///=======================Up-Sell==------------------//
+if Close Cross Above ma1 then begin 
+   buy("ma1B") 1 shares next bar at market;
+end;
+
+if CurrStatus = 1 then begin 
+   SellShort("up1S") 1 shares next bar at up1 limit;
+end;
+
+if CurrStatus = -1 then begin 
+   SellShort("up2S") 2 shares next bar at up2 limit;
+end;
+
+if CurrStatus = -3 then begin 
+   BuytoCover("up2SP") From Entry("up2S") 2 shares next bar at up1 limit;
+end;
+
+if CurrStatus = -3 then begin 
+   SellShort("up3S") 4 shares next bar at up3 limit;
+end;
+
+if CurrStatus = -7 then begin 
+   BuytoCover("up3SP") From Entry("up3S") 4 shares next bar at up2 limit;
+end;
+
+if Close Cross Above Up4 and Marketposition < 0 then begin 
+   BuytoCover("CAll") all Shares next bar at market;
+end;
+
+//if marketposition = 1 and Close Cross Under dw1 then begin 
+//   sell all shares next bar at market;
+//end;
+///======================DW_Buy----------------------//
+if Close Cross Under ma1 then begin 
+   SellShort("ma1S") 1 shares next bar at market;
+end;
+
+if CurrStatus = -1 then begin 
+   Buy("dw1B") 1 shares next bar at dw1 limit;
+end;
+
+if CurrStatus = 1 then begin 
+   Buy("dw2B") 2 shares next bar at dw2 limit;
+end;
+
+if CurrStatus = 3 then begin 
+   Sell("dw2SP") From Entry("dw2B") 2 shares next bar at dw1 limit;
+end;
+
+if CurrStatus = 3 then begin 
+   Buy("dw3B") 4 shares next bar at dw3 limit;
+end;
+
+if CurrStatus = 7 then begin 
+   Sell("dw3SP") From Entry("dw3B") 4 shares next bar at dw2 limit;
+end;
+
+if Close Cross Under dw4 and Marketposition > 0 then begin 
+   Sell("CAllS") all Shares next bar at market;
+end;
+
+//if marketposition = 1 and Close Cross Under dw1 then begin 
+//   sell all shares next bar at market;
+//end;

@@ -1,0 +1,37 @@
+[IntrabarOrderGeneration = true]
+
+inputs:
+   BuySell(1),
+   EntryPriceIn(0);
+
+var:
+   
+   intrabarpersist TrandferClose(0),
+   intrabarpersist profit(0);
+   
+if BuySell = 1 then profit = (Close - EntryPriceIn)*33*(Close of data2);   
+if BuySell = -1 then profit = (EntryPriceIn - Close)*33*(Close of data2);   
+
+TrandferClose = (Close of data1) * (Close of data2)/31.1035;
+
+if LastBarOnChart then begin
+
+	if Text_Exist(Value60) then  text_delete(Value60);
+
+	Value60 = Text_New(Date,Time,High, numtostr(TrandferClose,5) + "Y/g" + "\n"+ 
+	"1 Shares SHFE-Au is 1000g" + "\n"+
+	"= 1000/31.1035 = 32.150 Shares oz.av in MC"+"\n"
+	+" = 0.32150 Shares in MT4" + "\n"+
+	"Profit: " + NumToStr(profit,2) + " 33Oz need 5&Commison");  
+	
+	
+       text_setcolor(Value60,Red);
+
+	text_setsize(Value60,16);
+	Text_SetAttribute(Value60,1,True); 
+	Text_SetFontName(Value60,"Verdana"); 
+	
+	
+	
+	
+end;
