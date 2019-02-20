@@ -1,0 +1,201 @@
+variables: 
+
+	Length( 14 ), 
+
+	OverBought( 80 ) , 
+
+	OverSold( 20 ) ;
+
+
+variables: 
+
+	var0( 0 ), 
+
+	var1( 0 ), 
+
+	var2( 0 ), 
+
+	var3( 0 ) ;
+
+
+var:
+       CrossAlert(0);
+
+variables:  
+
+	  Double AfStep( 0.02 ),
+
+	  Double AfLimit( 0.2 ) ;
+ 
+variables:  
+
+	var10( 0 ), 
+
+	var11( 0 ), 
+
+	var12( 0 ), 
+
+	var13( 0 ) ;
+
+/////////==================================================/////////////// 
+variables:
+
+       Int SeriesLossRecord(0),
+       Double OpenBPrice(0),
+       Double OpenSPrice(0),
+       Double LastProfit(0);
+ 
+ var:
+  MP(0),
+  LastTradeProfitPoint(0),   
+  Quality(0),
+  TradeCount(0);
+  
+ MP = marketposition;  
+   
+ Value2 = ParabolicSAR( AfStep, AfLimit, var10, var11, var12, var13 ) ;  
+  
+	if close Cross Above var11 then  begin
+		OpenBPrice= Close;
+		LastProfit = OpenSPrice - OpenBPrice;
+		if LastProfit < 0 then begin 
+		   SeriesLossRecord = SeriesLossRecord + 1;
+		   Value1 = text_new(date,time,high,numtostr(SeriesLossRecord,0));
+		   text_setsize(Value1,20);
+		   text_setcolor(Value1,Red);
+		end
+		else begin 
+		   SeriesLossRecord = 0;
+		   Value2 = text_new(date,time,high,numtostr(SeriesLossRecord,0));
+		   text_setsize(Value2,20);
+		   text_setcolor(Value2,Red);
+	end;
+	end;
+	
+	if  close Cross Under var11 then begin 
+	       OpenSPrice= Close;	
+	       LastProfit = OpenSPrice- OpenBPrice;
+	       if LastProfit < 0 then begin 
+	          SeriesLossRecord = SeriesLossRecord + 1;
+	          Value3 = text_new(date,time,high,numtostr(SeriesLossRecord,0));
+		   text_setsize(Value3,20);
+		   text_setcolor(Value3,Red);
+	       end
+	       else begin 
+	          SeriesLossRecord = 0;
+	          Value4 = text_new(date,time,high,numtostr(SeriesLossRecord,0));
+		   text_setsize(Value4,20);
+		   text_setcolor(Value4,Red);
+	       end;
+	end;		    
+	         
+	         
+	         //Value5 = text_new(date,time,(high+low)/2,numtostr(SeriesLossRecord,0));
+    
+                Value88= Stochastic( H, L, C, Length, 3, 3, 1, var0, var1, var2, var3 ) ;
+
+var:
+
+   Sys(0);
+   
+if SeriesLossRecord >= 1  then begin 
+
+   Sys = 1;
+ 
+end;
+
+if SeriesLossRecord =  0 then begin 
+
+   Sys = 0;
+
+   if MarketPosition = -1 and CurrentBar > 2 and var2 crosses Above var3 then begin 
+      		buytocover ( "S-Over" ) this bar at Close ;
+		Sys = 0;
+   end;
+
+   if MarketPosition = 1 and CurrentBar > 2 and var2 crosses Under var3 then begin 
+      		Sell ( "B-Over" ) this bar at Close ;
+		Sys = 0;
+   end;
+
+end; 
+
+if  Sys = 1  then begin 
+
+	condition1 = MarketPosition = 0 and CurrentBar > 2 and var2 crosses under var3  and var2 > 70 And var11 <= OpenBPrice;
+	condition10 =   MarketPosition = 0 and ExitName(1) = "PB" and var2 > 70 and barssinceexit(1) <=5 ;	
+	condition2 = MarketPosition = -1 and CurrentBar > 2 and var2 crosses Above var3  ;
+       condition22 =  MarketPosition = -1 and var2 = 100 ;
+       
+	if condition1 Or Condition10 then begin                                                     
+		SellShort ( "S" ) this bar at Close ;
+       end;
+		
+	if condition2 Or Condition22 then begin                                                 
+		buytocover ( "PS" ) this bar at Close;
+		//Sys = 0;    
+	end;
+
+	condition11 =  MarketPosition = 0 and CurrentBar > 2 and  var2 crosses above var3  and var2 < 30 And var11 >= OpenSPrice;
+	condition21 =   MarketPosition = 0 and ExitName(1) = "PS" and var2 < 30 and barssinceexit(1) <=3 ;
+	condition32 =  MarketPosition = 1 and var2 = 0 ;
+
+	condition12 = MarketPosition = 1 and CurrentBar > 2 and var2 cross under var3;
+
+	if condition11 Or Condition21 then begin                                                      
+		Buy ( "B" ) this bar at Close ;
+	end;
+		
+	if condition12 Or condition32 then  begin                                             
+		sell ( "PB" ) this bar at Close ;
+		//Sys = 0;
+	end;
+	
+end;
+
+
+inputs:
+
+   AccountName("1999_2-0009904"),
+   Commmison(1),
+   Slipise(5);
+   
+ var:
+  TradeNum(0),
+  NoCommisonSlipiseAccountSeries(0),
+  HasCommisonSlipiseAccountSeries(0);
+       
+MP = marketposition;     
+ 
+if ((MP[1] <> 0 ) and MP = 0) OR (MP[1] =1 and MP = -1) OR (MP[1] =-1 and MP = 1) then begin   
+ 			NoCommisonSlipiseAccountSeries = NoCommisonSlipiseAccountSeries+ positionprofit(1);
+		       HasCommisonSlipiseAccountSeries = HasCommisonSlipiseAccountSeries + positionprofit(1) - (Commmison * MinMove*(1/PriceScale) + Slipise * MinMove*(1/PriceScale))*bigpointvalue;
+		       TradeNum = TradeNum + 1;
+                     //print(Date," ",Time," ",symbolname,"_",NoCommisonSlipiseAccountSeries ,"_",HasCommisonSlipiseAccountSeries ,"_", MinMove*(1/PriceScale)," ",bigpointvalue," ",TradeNum);
+end;
+
+var:
+   
+   RealOpenPrice(0);
+
+if LastBarOnChart then begin
+
+	if Text_Exist(Value60) then  text_delete(Value60);
+
+       RealOpenPrice = GetPositionAveragePrice(Symbol,AccountName);
+
+	Value60 = Text_New(0, 0, 0,Symbol + newline + "NoCommisionSliplise: " + Numtostr(NoCommisonSlipiseAccountSeries,2) + newline + 
+	"HasCommisonSlipiseAccountSeries: " + Numtostr(HasCommisonSlipiseAccountSeries ,2) + newline + "TradeNum: " + NumToStr(TradeNum ,2) + newline + "TicChengben(Include In-Out): " 
+	+ NumToStr(Commmison+Slipise,1) + "Tick =" + NumToStr((Commmison+Slipise)* MinMove*(1/PriceScale)*bigpointvalue,2) + newline + "--Commision: " + NumToStr(Commmison,1) + "Tick =" + NumToStr((Commmison)* MinMove*(1/PriceScale)*bigpointvalue,2) + 
+	NewLine + "--Slipise: " + NumToStr(Slipise,1) + "Tick =" + NumToStr((Slipise)* MinMove*(1/PriceScale)*bigpointvalue,2) + newLine+ "Now-Silipse: " + NumToStr(absvalue(Close - Close[1])/MinMove*(1/PriceScale)*bigpointvalue,2) + " RealNowOpen-Silpse: " +
+	NumToStr(absvalue(RealOpenPrice - EntryPrice(0))/MinMove*(1/PriceScale)*bigpointvalue,2)  
+	+ newline + "ChartNowOpenPrice: " + NumToStr(EntryPrice(0),2) + newline + "RealAccountOpenPrice: " + NumToStr(RealOpenPrice,2));
+	
+	Text_Float(Value60, 5, 75);
+	text_setcolor(Value60,Red);
+	text_setsize(Value60,8);
+	Text_SetAttribute(Value60,1,True); 
+	Text_SetFontName(Value60,"Verdana"); 
+
+end;
+

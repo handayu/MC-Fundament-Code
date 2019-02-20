@@ -1,0 +1,193 @@
+[IntrabarOrderGeneration = false]
+
+inputs:
+         OpenShares(1),
+         SymbolColor(0);
+
+// variables:
+     
+	    // bool IsParSystem_Switch(true),
+	    
+	    // HighLimitPrice(0),
+	    
+	    // LowLimitPrice(0);
+	    
+
+variables:  
+
+	  AfStep( 0.02 ),
+
+	  AfLimit( 0.2 ) ;
+ 
+variables:  
+
+	var0( 0 ), 
+
+	var1( 0 ), 
+
+	var2( 0 ), 
+
+	var3( 0 ) ;
+
+//////////////////======Recode-And Destroy The Series Loss Construct And then Go-on=========///////////////
+
+variables:
+
+       Int SeriesLossRecord(0),
+       Double OpenBPrice(0),
+       Double OpenSPrice(0),
+       Double LastProfit(0);
+    
+if TradeCount >= 1 then begin 
+      
+	if close Cross Above var1 then  begin
+		OpenBPrice= Close;
+		LastProfit = OpenSPrice - OpenBPrice;
+		if LastProfit < 0 then begin 
+		   SeriesLossRecord = SeriesLossRecord + 1;
+		end
+		else begin 
+		   SeriesLossRecord = 0;
+		end;
+	end;
+	  
+	if  close Cross Under var1 then begin 
+	       OpenSPrice= Close;	
+	       LastProfit = OpenSPrice- OpenBPrice;
+	       if LastProfit < 0 then begin 
+	          SeriesLossRecord = SeriesLossRecord + 1;
+	       end
+	       else begin 
+	          SeriesLossRecord = 0;
+	       end;
+	end;		
+end;
+
+
+
+//print("date:",date,"  ","time:",time,"  ","SeriesLossRecord :",SeriesLossRecord );
+
+// variables:
+
+                  // String DEBUGSTR("DEBUG"),
+                  
+                  // Int      DEBUGINTPTR(0);
+                  
+//////////////////////////////=====================================///////////////////////////////////////
+//if IsParSystem_Switch = true then begin 
+
+		Value1 = ParabolicSAR( AfStep, AfLimit, var0, var1, var2, var3 ) ;  
+
+		if  close cross above var1 then   begin
+			Buy ( "ParB" ) OpenShares shares this bar at Close;   
+	                 end;
+
+		if close cross under var1 then begin
+			Sell Short ( "ParS" ) OpenShares shares this bar at Close;
+	                  end;  
+		
+	                // //if Entry-Par.in And next it goes other direction,out the open High-Low system;
+		// if (entryname(0) = "ParB" Or entryname(0) = "ProfitCoverS" ) and marketposition = 1 then begin 
+		   // if Close < EntryPrice(0) then begin 
+		      // Sell ("PParB") all shares this Bar at Close;		      
+		       // HighLimitPrice = Highest(high,Barssinceentry(0)+1);
+	                        // LowLimitPrice	= Lowest(Low,7);
+	                        // IsParSystem_Switch = false;  
+	                        // DEBUGSTR = "PParB-Action";    
+		      // end;
+		// end;
+		
+		// if (entryname(0) = "ParS" Or entryname(0) = "ProfitCoverB" ) and marketposition = -1 then begin 
+		   // if Close > EntryPrice(0) then begin
+		      // BuyToCover ("PParS") all shares this Bar at Close;
+		      // HighLimitPrice = Highest(high,7);//nearest - highest price
+	                        // LowLimitPrice= Lowest(Low,Barssinceentry(0)+1);//near
+	                        // IsParSystem_Switch = false;   
+	                        // DEBUGSTR = "PParS-Action";       
+	                        // DEBUGINTPTR = BarNumber + MaxBarsBack;
+		      // end;
+		// end;	
+//end;
+
+//////////////////////////////=====================================///////////////////////////////////////
+// if IsParSystem_Switch = false and HighLimitPrice <> 0 and LowLimitPrice <> 0  then begin 
+
+	                 // //=============
+		// if Close Cross Above HighLimitPrice then Buy ( "HB" ) this bar at close;   
+		// if Close Cross Under  LowLimitPrice then SellShort ( "LS" ) this bar at close;   
+		
+		// //=============
+		// if entryname(0) = "HB" and marketposition = 1 then begin 
+		   // if Close < HighLimitPrice then begin 
+		      // Sell ("PB") all shares this Bar at Close;
+	                         // HighLimitPrice = Highest(high,3);//Modify Highest-Break Price
+		      // end;
+		// end;
+		
+		// if entryname(0) = "LS" and marketposition = -1 then begin 
+		   // if Close > LowLimitPrice then begin 
+		    // BuyToCover ("PS") all shares this Bar at Close;    
+		     // LowLimitPrice= Lowest(Low,3);//Modify Lowest-Break Price
+		    // end;
+		// end;
+		
+		// //=============
+		// if entryname(0) = "HB" and marketposition = 1 and ( Openpositionprofit >= 0 )  then begin 
+		   // if Close Cross Under var1 then begin 
+		          // SellShort ( "ProfitCoverB" ) this bar at close; 
+		          // IsParSystem_Switch = true;  
+		      // end;
+		// end;
+		
+			
+		// if entryname(0) = "LS" and marketposition = -1 and ( Openpositionprofit >= 0 )  then begin 
+		   // if Close Cross Above var1 then begin 
+		          // Buy ( "ProfitCoverS" ) this bar at close;   
+		          // IsParSystem_Switch = true;  
+		      // end;
+		// end;
+// end;
+
+
+if LastBarOnChart then begin
+
+	if Text_Exist(Value60) then  text_delete(Value60);
+
+	Value60 = Text_New(Date,Time,High, symbol);  
+	
+	if SymbolColor = 0 then text_setcolor(Value60,Red);
+       if SymbolColor = 1 then text_setcolor(Value60,Green);
+	if SymbolColor = 2 then text_setcolor(Value60,White);
+	if SymbolColor = 3 then text_setcolor(Value60,Yellow);
+	if SymbolColor = 4 then text_setcolor(Value60,Blue);
+	if SymbolColor = 5 then text_setcolor(Value60,DarkCyan);
+	if SymbolColor = 6 then text_setcolor(Value60,DarkMagenta);
+	if SymbolColor = 7 then text_setcolor(Value60,LightGray);
+
+	text_setsize(Value60,16);
+	Text_SetAttribute(Value60,1,True); 
+	Text_SetFontName(Value60,"Verdana"); 
+end;
+
+
+var:
+  MP(0),
+  LastTradeProfitPoint(0),   
+  Quality(0),
+  TradeCount(0);
+     
+MP = marketposition;  
+   
+if (MP[1] = 0 OR MP[1] = -1) and MP = 1  then begin
+   Quality = Quality + positionprofit(1);
+   TradeCount = TradeCount + 1;
+   //print(symbolname,"_",Date,"_",Time,"_",Quality,"_",positionprofit(1),"_",TradeCount);    
+end;
+    
+if (MP[1] = 0 OR MP[1] = 1) and MP = -1 then begin   
+      Quality = Quality + positionprofit(1);
+      TradeCount = TradeCount+1;
+   //print(symbolname,"_",Date,"_",Time,"_",Quality,"_",positionprofit(1),"_",TradeCount);     
+end; 
+
+// print("date:",date,"  ","time:",time,"  ","IsParSystem_Switch:",IsParSystem_Switch,"  ","DEBUGSTR :",DEBUGSTR,"  ","DEBUGINTPTR :",DEBUGINTPTR  );
