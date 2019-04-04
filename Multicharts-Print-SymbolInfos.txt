@@ -1,0 +1,60 @@
+[IntrabarOrderGeneration = false]
+inputs:  AfStep( 0.02 ), AfLimit( 0.2 ) ;
+variables:  var0( 0 ), var1( 0 ), var2( 0 ), var3( 0 ) ;
+
+Value1 = ParabolicSAR( AfStep, AfLimit, var0, var1, var2, var3 ) ;
+
+if var2 = 1 then
+	Buy ( "ParSE" ) next bar market ;
+	
+if var2 = -1 then
+	Sell Short ( "ParLE" ) next bar at market ;
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+inputs:
+   AccountName("8070-882702"),
+   Commmison(1),
+   Slipise(5);
+   
+ var:
+  MP(0),
+  TradeNum(0); 
+       
+MP = marketposition;     
+ 
+if ((MP[1] <> 0 ) and MP = 0) OR (MP[1] =1 and MP = -1) OR (MP[1] =-1 and MP = 1) then begin   
+		       TradeNum = TradeNum + 1;
+end;
+
+
+   
+var:
+  NoCommisonSlipiseAccountSeries(0),
+  HasCommisonSlipiseAccountSeries(0);
+        
+if ((MP[1] <> 0 ) and MP = 0) OR (MP[1] =1 and MP = -1) OR (MP[1] =-1 and MP = 1) then begin   
+
+ 			NoCommisonSlipiseAccountSeries = NoCommisonSlipiseAccountSeries+ positionprofit(1);
+		       
+		       HasCommisonSlipiseAccountSeries = HasCommisonSlipiseAccountSeries + positionprofit(1) - (Commmison * MinMove*(1/PriceScale) + Slipise * MinMove*(1/PriceScale))*bigpointvalue;
+		       
+		       value1 = text_new_bn(Barnumber,high,Symbol + newline + 
+		       "LastProfit: " + Numtostr(positionprofit(1) ,2) + newline + 
+		       "TradeNum: " + Numtostr(TradeNum ,0) + NewLine + 
+		       "NoComSlipeProfit: " + Numtostr(NoCommisonSlipiseAccountSeries ,2) + NewLine + 
+		       "HasComSlipeProfit: " + Numtostr(HasCommisonSlipiseAccountSeries ,2) + NewLine + 
+		       "AllIn-OutComsinAndSlipe(Comison+slipe): " + Numtostr(Commmison+Slipise ,2) + NewLine + 
+		       "EntryAndExit-Comsion: " + Numtostr(Commmison,2) + NewLine + 
+		       "EntryAndExit-Slipese: " + Numtostr(Slipise  ,2) + "  EntrySlipe: " + Numtostr(Slipise/2  ,2) + "  ExitSlipe: " + Numtostr(Slipise/2  ,2) +  NewLine +
+		       "BigPointValue: " + Numtostr(BigpointValue  ,2) + " MinMove:" + NumToStr(MinMove*(1/PriceScale),2) + " MinMove-Value(MinM*BigValue): " + NumToStr(MinMove*(1/PriceScale)*bigpointvalue,2) + NewLine +
+		       "--" + "Remove-Money(EntryAndExit-Comsion+EntryAndExit-Slipese**BigPointValue): " + Numtostr((Commmison * MinMove*(1/PriceScale) + Slipise * MinMove*(1/PriceScale))*bigpointvalue ,2) +NewLine + NewLine + 
+		       "ChartEntryPrice:       " + NumToStr(OpenEntryPrice,2) + NewLine + 
+		       "RealAccountEntryPrice: " + NumToStr(GetPositionAveragePrice(Symbol,AccountName),2) + NewLine);
+	
+		       text_setcolor(value1,White);
+		       text_setsize(value1,8);
+		       text_setfontname(value1,"Verdana");
+end;
+
+

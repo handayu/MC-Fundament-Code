@@ -1,0 +1,47 @@
+Inputs:
+       MaxProfitRenko(3),
+       DrawBackRenko(1);
+
+
+
+var:
+       intrabarpersist  WinMax(0),
+	intrabarpersist  MaxProfit(0),
+	intrabarpersist  WinNow(0);
+
+var:
+
+   varRenko(0);
+
+varRenko = AbsValue(Open[1] - Close[1]);	
+	
+	if  marketposition<>0  then begin 
+		if marketposition = 1 then begin 
+			WinMax=( close- entryprice(0) )/ varRenko ;
+	              if(WinMax>MaxProfit) then MaxProfit=WinMax;
+	              if(MaxProfit<>0) then WinNow= MaxProfit - WinMax;
+	       end;
+
+	       if ( Marketposition = 1  and MaxProfit >= MaxProfitRenko and WinNow >= DrawBackRenko and openpositionprofit > 0 ) then begin 
+		      Sell ("SDrawDown_Out") this bar at Close;
+		      WinMax = 0;
+		      MaxProfit = 0;
+		      WinNow = 0;
+	       end;
+	end;
+
+	if  marketposition<>0  then begin 
+		if marketposition = -1 then begin 
+			WinMax=( EntryPrice(0) - Close )/ varRenko ;
+	              if(WinMax > MaxProfit) then MaxProfit = WinMax;
+	              if(MaxProfit<> 0) then WinNow = MaxProfit-WinMax;
+	       end;
+
+	       if ( Marketposition = -1  and MaxProfit >= MaxProfitRenko and WinNow >= DrawBackRenko and openpositionprofit > 0 ) then begin 
+		      BuytoCover ("BDrawDown_Out")this bar at Close;
+		      WinMax = 0;
+		      MaxProfit = 0;
+		      WinNow = 0;
+	       end;
+	end;
+	
